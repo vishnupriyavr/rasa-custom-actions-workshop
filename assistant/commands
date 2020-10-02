@@ -1,0 +1,16 @@
+vault server -dev
+export VAULT_ADDR="http://173.255.112.208:8200"
+export VAULT_TOKEN="s.b8O9gHcbp4Lxs0RsqFwklvHh"
+
+vault kv put secret/snow_service user=<user> pwd=<pwd> instance=<instance>
+vault kv put secret/snow_service user=admin pwd=tDxio7WE6sOO instance=dev76883.service-now.com
+
+rasa run --cors "*"
+source ./venv/bin/activate
+cd workshop-adv-actions/assistant
+
+
+rasa train
+rasa run --cors "*"
+rasa run actions
+https://rasahq.github.io/workshop-adv-actions/

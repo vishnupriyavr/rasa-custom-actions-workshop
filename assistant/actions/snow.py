@@ -10,6 +10,7 @@ from actions.util import anonymous_profile, priorities, states
 
 logger = logging.getLogger(__name__)
 
+
 class SnowAPI:
     """class to connect to the ServiceNow API"""
 
@@ -19,10 +20,10 @@ class SnowAPI:
         self.auth = BasicAuth(
             login=secret.get("user"),
             password=secret.get("pwd"),
-            encoding="utf-8"
+            encoding="utf-8",
         )
         snow_instance = secret.get("instance")
-        self.base_api_url = f"https://{snow_instance}/api/now"        
+        self.base_api_url = f"https://{snow_instance}/api/now"
         self._session = None
 
         # Hook into the os's shutdown signal to
@@ -32,7 +33,7 @@ class SnowAPI:
         loop.add_signal_handler(signal.SIGTERM, task)
         self._loop = loop
 
-    async def open_session(self) -> ClientSession:  
+    async def open_session(self) -> ClientSession:
         """Opens the client session if it hasn't been opened yet,
            and returns the client session.
            Async session needs to be created on the event loop.
@@ -40,7 +41,7 @@ class SnowAPI:
            python constructors don't support async-await paradigm.
         Returns:
             The cached client session.
-        """      
+        """
         if self._session is not None:
             return self._session
 
@@ -48,37 +49,47 @@ class SnowAPI:
         json_headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-        }    
-        
+        }
+
         self._session = ClientSession(headers=json_headers, auth=self.auth)
         return self._session
 
     async def close_session(self):
         if self._session is not None:
-            await self._session.close()  
+            await self._session.close()
 
     async def get_user_profile(self, id: Text) -> Dict[Text, Any]:
         """Get the user profile associated with the given ID.
         Args:
-            id: Service now sys_id used to retrieve the user profile.            
+            id: Service now sys_id used to retrieve the user profile.
         Returns:
             A dictionary with user profile information.
         """
-        
+
         url = f"{self.base_api_url}/table/sys_user/{id}"
         session = await self.open_session()
 
         async with session.get(url) as resp:
             if resp.status != 200:
-                logger.error("Unable to load user profile. Status: %d", resp.status)
+                logger.error(
+                    "Unable to load user profile. Status: %d", resp.status
+                )
                 return anonymous_profile
-            
+            # Exercise 3:
+            # Enhance the exception handling of the assistant such that it can gracefully handle connection errors.
+            # For example, the assistant should notify the user if ServiceNow is down.
+            elif resp.status == 500 or resp.status == 503:
+                logger.error(
+                    "Server error. The server might be down. Status: %d",
+                    resp.status,
+                )
+
             resp_json = await resp.json()
-            user = resp_json.get("result")            
+            user = resp_json.get("result")
             user_profile = {
                 "id": id,
                 "name": user.get("name"),
-                "email": user.get("email")
+                "email": user.get("email"),
             }
             return user_profile
 
@@ -89,52 +100,62 @@ class SnowAPI:
             f"sysparm_query=caller_id={caller_id}"
             f"&sysparm_display_value=true"
         )
-        session = await self.open_session()        
+        session = await self.open_session()
         async with session.get(url) as resp:
             if resp.status != 200:
-                return { "error": "Unable to get recent incidents"}
-            
-            resp_json = await resp.json()    
+                return {"error": "Unable to get recent incidents"}
+
+            resp_json = await resp.json()
             result = resp_json.get("result")
             if result:
-                return { "incidents": result }
+                return {"incidents": result}
             else:
                 email = user_profile.get("email")
-                return { "error": f"No incidents on record for {email}" }
+                return {"error": f"No incidents on record for {email}"}
 
     async def create_incident(
-        self,
-        caller_id,
-        short_description,
-        description,
-        priority
+        self, caller_id, short_description, description, priority
     ) -> Dict[Text, Any]:
         url = f"{self.base_api_url}/table/incident"
-        data={
+        data = {
             "short_description": short_description,
             "description": description,
             "urgency": priorities.get(priority),
             "opened_by": caller_id,
             "caller_id": caller_id,
-            "comments": "Rasa assistant opened this ticket"
+            "comments": "Rasa assistant opened this ticket",
         }
-        session = await self.open_session()        
+        session = await self.open_session()
         async with session.post(url, json=data) as resp:
             if resp.status != 201:
                 resp_json = await resp.json()
                 logger.error(
                     "Unable to create incident. Status: %d; Error: %s",
                     resp.status,
-                    resp_json
+                    resp_json,
                 )
-                return { "error": "Unable to create incident"}
-            
-            resp_json = await resp.json()            
+                return {"error": "Unable to create incident"}
+            # Exercise 3:
+            # Enhance the exception handling of the assistant such that it can gracefully handle connection errors.
+            # For example, the assistant should notify the user if ServiceNow is down.
+
+            elif resp.status == 400:
+                resp_json = await resp.json()
+                logger.error(
+                    "The request URI does not match the APIs in the system, or the operation failed for unknown reasons. Invalid headers can also cause this error. Status: %d; Error: %s",
+                    resp.status,
+                    resp_json,
+                )
+                return {
+                    "error": "The request URI does not match the APIs in the system, or the operation failed for unknown reasons. Invalid headers can also cause this error."
+                }
+
+            resp_json = await resp.json()
             return resp_json.get("result", {})
 
     @staticmethod
     def priority_db() -> Dict[str, int]:
-        """Database of supported priorities"""        
+        """Database of supported priorities"""
         return priorities
 
     @staticmethod

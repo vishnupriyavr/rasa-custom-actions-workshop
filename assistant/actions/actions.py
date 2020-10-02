@@ -3,18 +3,25 @@ from typing import Dict, Text, Any, List, Union, Optional
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.forms import FormAction, REQUESTED_SLOT
-from rasa_sdk.events import AllSlotsReset, SlotSet, EventType, SessionStarted, ActionExecuted
+from rasa_sdk.events import (
+    AllSlotsReset,
+    SlotSet,
+    EventType,
+    SessionStarted,
+    ActionExecuted,
+)
 from actions.snow import SnowAPI
 from actions.util import anonymous_profile
 
 logger = logging.getLogger(__name__)
 snow = SnowAPI()
 
+
 def get_user_id_from_event(tracker: Tracker) -> Text:
-    """Pulls "session_started" event, if available, and 
-       returns the userId from the channel's metadata.
-       Anonymous user profile ID is returned if channel 
-       metadata is not available
+    """Pulls "session_started" event, if available, and
+    returns the userId from the channel's metadata.
+    Anonymous user profile ID is returned if channel
+    metadata is not available
     """
     event = tracker.get_last_event_for("session_started")
     if event is not None:
@@ -24,6 +31,7 @@ def get_user_id_from_event(tracker: Tracker) -> Text:
         return metadata.get("userId", anonymous_profile.get("id"))
 
     return anonymous_profile.get("id")
+
 
 class ActionSessionStart(Action):
     def name(self) -> Text:
@@ -46,18 +54,19 @@ class ActionSessionStart(Action):
             id = get_user_id_from_event(tracker)
             if id == anonymous_profile.get("id"):
                 user_profile = anonymous_profile
-            else:    
+            else:
                 # Make an actual call to Snow API.
                 user_profile = await snow.get_user_profile(id)
 
             slots.append(SlotSet(key="user_profile", value=user_profile))
 
         if user_name is None:
-            slots.append(SlotSet(key="user_name", value=user_profile.get("name")))
+            slots.append(
+                SlotSet(key="user_name", value=user_profile.get("name"))
+            )
 
         return slots
 
-         
     async def run(
         self,
         dispatcher: CollectingDispatcher,
@@ -78,6 +87,7 @@ class ActionSessionStart(Action):
 
         return events
 
+
 class IncidentStatus(Action):
     def name(self) -> Text:
         return "action_incident_status"
@@ -89,7 +99,7 @@ class IncidentStatus(Action):
         domain: Dict[Text, Any],
     ) -> List[EventType]:
         """Look up all incidents associated with email address
-           and return status of each"""
+        and return status of each"""
 
         user_profile = tracker.get_slot("user_profile")
 
@@ -116,6 +126,7 @@ class IncidentStatus(Action):
         dispatcher.utter_message(message)
         return []
 
+
 class OpenIncidentForm(FormAction):
     def name(self) -> Text:
         return "open_incident_form"
@@ -128,15 +139,15 @@ class OpenIncidentForm(FormAction):
             "incident_title",
             "problem_description",
             "priority",
-            "confirm"
+            "confirm",
         ]
 
     def slot_mappings(self) -> Dict[Text, Union[Dict, List[Dict]]]:
         """A dictionary to map required slots to
-            - an extracted entity
-            - intent: value pairs
-            - a whole message
-            or a list of them, where a first match will be picked"""
+        - an extracted entity
+        - intent: value pairs
+        - a whole message
+        or a list of them, where a first match will be picked"""
 
         return {
             "incident_title": [
@@ -190,13 +201,17 @@ class OpenIncidentForm(FormAction):
             dispatcher.utter_message(template="utter_no_priority")
             return {"priority": None}
 
-    def build_slot_sets(self, user_profile) -> List[Dict]:  
+    # Exercise 2:
+    # Update the incident creation form to display the user’s email address when confirming submission of a ticket.
+
+    def build_slot_sets(self, user_profile) -> List[Dict]:
         """Helper method to build slot sets"""
         return [
             AllSlotsReset(),
             SlotSet("user_profile", user_profile),
-            SlotSet("user_name", user_profile.get("name"))
-        ]   
+            SlotSet("user_name", user_profile.get("name")),
+            SlotSet("user_name", user_profile.get("email")),
+        ]
 
     async def submit(
         self,
@@ -223,11 +238,12 @@ class OpenIncidentForm(FormAction):
                 "ticket for you. Appreciate your enthusiasm though :)"
             )
         else:
-            result = await snow.create_incident( 
-                user_profile.get("id"),           
+            result = await snow.create_incident(
+                user_profile.get("id"),
+                user_profile.get("email"),
                 tracker.get_slot("incident_title"),
                 tracker.get_slot("problem_description"),
-                tracker.get_slot("priority")
+                tracker.get_slot("priority"),
             )
             incident_number = result.get("number")
             if incident_number:
