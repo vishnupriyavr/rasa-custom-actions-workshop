@@ -1130,7 +1130,7 @@ function _arrayLikeToArray(e, t) {
             t.hostname ||
             ("undefined" != typeof location
               ? location.hostname
-              : "35.192.198.9")),
+              : "34.71.104.113")),
           (this.port =
             t.port ||
             ("undefined" != typeof location && location.port
@@ -19795,7 +19795,7 @@ function _arrayLikeToArray(e, t) {
                   value: function (e, t, n) {
                     var r = this;
                     (this.userId = e),
-                      (this.socket = jf("http://35.192.198.9:5005", {
+                      (this.socket = jf("http://34.71.104.113:5005", {
                         path: "/socket.io/",
                       })),
                       this.socket.on("connect_error", function (e) {

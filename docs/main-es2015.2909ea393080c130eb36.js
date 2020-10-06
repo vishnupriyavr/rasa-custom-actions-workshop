@@ -899,7 +899,7 @@
             e.hostname ||
             ("undefined" != typeof location
               ? location.hostname
-              : "35.192.198.9")),
+              : "34.71.104.113")),
           (this.port =
             e.port ||
             ("undefined" != typeof location && location.port
@@ -15239,7 +15239,7 @@
           }
           connect(t, e, n) {
             (this.userId = t),
-              (this.socket = Ku("http://35.192.198.9:5005", {
+              (this.socket = Ku("http://34.71.104.113:5005", {
                 path: "/socket.io/",
               })),
               this.socket.on("connect_error", (t) => {

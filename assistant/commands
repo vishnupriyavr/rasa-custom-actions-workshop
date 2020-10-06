@@ -1,6 +1,6 @@
 vault server -dev
-export VAULT_ADDR="http://35.192.198.9:8200"
-export VAULT_TOKEN="s.8q9AdtEzdHeozMsuiz1OKfd9"
+export VAULT_ADDR="http://34.71.104.113:8200"
+export VAULT_TOKEN="s.k3W5nfiPT01q1tNspF1tqX3p"
 
 vault kv put secret/snow_service user=<user> pwd=<pwd> instance=<instance>
 vault kv put secret/snow_service user=admin pwd=tDxio7WE6sOO instance=dev76883.service-now.com
