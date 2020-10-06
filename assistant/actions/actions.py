@@ -141,6 +141,7 @@ class OpenIncidentForm(FormAction):
             "incident_title",
             "problem_description",
             "priority",
+            "email",
             "confirm",
         ]
 
