@@ -52,6 +52,8 @@ class ActionSessionStart(Action):
 
         if user_profile is None:
             id = get_user_id_from_event(tracker)
+            # Hardcoding sys id to check in rasa shell
+            id = "a8f98bb0eb32010045e1a5115206fe3a"
             if id == anonymous_profile.get("id"):
                 user_profile = anonymous_profile
             else:
