@@ -95,6 +95,7 @@ class SnowAPI:
 
     async def retrieve_incidents(self, user_profile) -> Dict[Text, Any]:
         caller_id = user_profile.get("id")
+        email = user_profile.get("email")
         url = (
             f"{self.base_api_url}/table/incident?"
             f"sysparm_query=caller_id={caller_id}"
@@ -114,7 +115,7 @@ class SnowAPI:
                 return {"error": f"No incidents on record for {email}"}
 
     async def create_incident(
-        self, caller_id, short_description, description, priority
+        self, caller_id, short_description, description, priority, email
     ) -> Dict[Text, Any]:
         url = f"{self.base_api_url}/table/incident"
         data = {
