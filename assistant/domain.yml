@@ -61,23 +61,22 @@ responses:
   utter_no_priority:
     - text: Sorry "{priority}" is not a valid priority. Please try again.
   utter_help:
-    - text:
-        "I can help you open a service request ticket, or check the status of your open incidents.
-        \nYou can ask me things like:
-        \n- Open an incident
-        \n- Help me reset my password
-        \n- I'm having a issue with my email
-        \n- What's the status of the ticket I opened?"
+    - text: "I can help you open a service request ticket, or check the status of your open incidents.
+      \nYou can ask me things like:
+      \n- Open an incident
+      \n- Help me reset my password
+      \n- I'm having a issue with my email
+      \n- What's the status of the ticket I opened?"
   utter_welcome:
     - text: You're welcome!
   utter_default:
     - text: I didn't quite understand that. Could you rephrase?
   utter_ask_confirm:
     - text: "Should I open an incident with the following details?
-        \n    Title: {incident_title}
-        \n    Description: {problem_description}
-        \n    Priority: {priority}
-        \n    Email ID: {email}"
+      \n    Title: {incident_title}
+      \n    Description: {problem_description}
+      \n    Priority: {priority}
+      \n    Email: {email}"
       buttons:
         - title: Yes
           payload: /affirm
