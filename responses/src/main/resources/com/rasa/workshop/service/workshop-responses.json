@@ -70,7 +70,7 @@
   ],
   "utter_ask_confirm": [
     {
-      "text": "Should I open an incident?",
+      "text": "Should I open an incident?\nTitle: {incident_title}\nDescription: {problem_description}\nPriority: {priority}\n Email: {email}",
       "buttons": [
         {
           "payload": "/affirm",
