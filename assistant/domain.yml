@@ -73,10 +73,10 @@ responses:
     - text: I didn't quite understand that. Could you rephrase?
   utter_ask_confirm:
     - text: "Should I open an incident with the following details?
-      \n    Title: {incident_title}
-      \n    Description: {problem_description}
-      \n    Priority: {priority}
-      \n    Email: {email}"
+      \nTitle: {incident_title}
+      \nDescription: {problem_description}
+      \nPriority: {priority}
+      \nEmail: {email}"
       buttons:
         - title: Yes
           payload: /affirm
